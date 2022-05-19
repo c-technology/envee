@@ -119,6 +119,23 @@ def test_read_file_location(tmpdir):
     assert env.debug == "true"
 
 
+def test_read_default_location(tmpdir):
+    p_dir = tmpdir.mkdir("secrets")
+    p = p_dir.join("debug")
+    p.write("true")
+
+    assert "DEBUG" not in os.environ
+
+    @environment
+    @dataclass
+    class Environment:
+        debug: str
+
+    env = Environment.read(default_location=p_dir.realpath())
+    assert env.debug == "true"
+
+
+
 def test_read_file_location_and_file_name(tmpdir):
     p_dir = tmpdir.mkdir("secrets")
     p = p_dir.join("debug2")
