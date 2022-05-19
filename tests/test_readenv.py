@@ -197,3 +197,20 @@ def test_read_default_type(monkeypatch):
     env = Environment.read()
 
     assert type(env.debug) == str and env.debug == "true"
+
+
+
+def test_read_int_and_float(monkeypatch):
+
+    @environment
+    @dataclass
+    class Environment:
+        an_int: int
+        a_float: float
+
+    monkeypatch.setenv("AN_INT", "42")
+    monkeypatch.setenv("A_FLOAT", "100.0")
+    env = Environment.read()
+
+    assert env.an_int == 42
+    assert env.a_float == 100.0
