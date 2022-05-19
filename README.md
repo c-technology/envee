@@ -18,9 +18,7 @@ For each field, per default `readenv` looks for environment variables with the u
 ```python
 from dataclasses import dataclass
 from typing import Optional
-
 from readenv import environment
-
 
 @environment
 @dataclass
@@ -42,7 +40,6 @@ In the following example the field debug is flled using the environment variable
 
 ```python
 from dataclasses import dataclass, field
-
 from readenv import environment, metadata
 
 @environment
@@ -59,7 +56,6 @@ The default location can be changed by passing a different location to the `read
 
 ```python
 from dataclasses import dataclass, field
-
 from readenv import environment, metadata
 
 @environment
@@ -74,7 +70,6 @@ Alternatively, the fields metadata can specify the `file_location` or `file_name
 
 ```python
 from dataclasses import dataclass, field
-
 from readenv import environment, metadata
 
 @environment
@@ -91,7 +86,6 @@ For complex datatypes, a conversion function needs to be passed to the field.
 
 ```python
 from dataclasses import dataclass, field
-
 from readenv import environment, metadata
 
 @environment
