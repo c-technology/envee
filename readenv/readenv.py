@@ -14,8 +14,7 @@ from typing import (
     get_type_hints,
 )
 
-
-PRIMITIVE_TYPES = {bool, int, float, str, bytes}
+PRIMITIVE_TYPES = {int, float, str}
 
 T = TypeVar("T")
 
