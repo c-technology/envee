@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "readenv"
+dynamic = ["version"]
 description = "Read variables from environment or files into dataclasses"
 readme = "README.md"
 keywords = ["env", "environment variables", "docker secrets", "settings"]
 license = { text = "BSD 3-Clause License" }
 requires-python = ">=3.8"
 classifiers = [
-
     "Development Status :: 4 - Beta",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
@@ -20,6 +20,9 @@ classifiers = [
 
 [tool.setuptools]
 packages = ["readenv"]
+
+[tool.setuptools.dynamic]
+version = { attr = "readenv.__version__" }
 
 [tool.black]
 target-version = ["py38", "py39", "py310"]
