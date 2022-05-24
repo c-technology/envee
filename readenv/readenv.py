@@ -1,5 +1,6 @@
 import abc
 import os
+import shlex
 from dataclasses import MISSING, dataclass, fields
 from typing import (
     Any,
@@ -21,14 +22,43 @@ T = TypeVar("T")
 READENV_METADATA_KEY = "readenv"
 
 
+def _parse_dotenv(dotenv_file_path: str) -> Dict[str, str]:
+    """Parse a .env file into a dict with key value pairs
+
+    Parameters
+    ----------
+    dotenv_file_path : str
+        The path to the .env file
+
+    Returns
+    -------
+    Dict[str, str]
+        The parsed key value pairs
+    """
+    vars: Dict[str, str] = {}
+    with open(dotenv_file_path) as f:
+        dotenv = f.read()
+        s = shlex.shlex(dotenv, posix=True)
+        parts = list(s)
+        for index, elem in enumerate(parts):
+            if elem == "=":
+                if 0 < index < len(parts):
+                    if len(parts[index - 1]) > 0:
+                        key = parts[index - 1]
+                        value = parts[index + 1]
+                        vars[key] = value
+    return vars
+
+
 @dataclass
-class FieldMetadata:
+class _FieldMetadata:
     file_location: Optional[str] = None
     file_name: Optional[str] = None
     file_path: Optional[str] = None
     env_name: Optional[str] = None
-    only_env: bool = False
-    only_file: bool = False
+    dotenv_name: Optional[str] = None
+    use_env: bool = True
+    use_file: bool = True
     conversion_func: Optional[Callable[[str], Any]] = None
 
 
@@ -39,30 +69,33 @@ def metadata(
     file_name: Optional[str] = None,
     file_path: Optional[str] = None,
     env_name: Optional[str] = None,
-    only_env=False,
-    only_file=False,
+    dotenv_name: Optional[str] = None,
+    use_env=True,
+    use_file=True,
     conversion_func: Optional[Callable[[str], Any]] = None,
 ) -> Dict[Any, Any]:
-    """Configure field
+    """Configure field metadata
 
     Parameters
     ----------
     metadata : Optional[Dict[str, Any]], optional
-        dataclass metadata dict if already one exists. Can be omitted if dataclass is not annotated with another library modifying the dataclass metadata.
+        dataclass metadata dict if already one exists. Can be omitted if dataclass is not annotated with another library modifying the dataclass metadata, by default None
     file_location : Optional[str], optional
-        Override the default file location for this field
+        Override the default file location for this field, by default None
     file_name : Optional[str], optional
-        Override the file name for this field. Per default the lower case field name is used as file name.
+        Override the file name for this field. Per default the lower case field name is used as file name, by default None
     file_path : Optional[str], optional
-        Override the file path (constructed from file_location and file_name). Can be used instead of specifying file_location and file_name.
+        Override the file path (constructed from file_location and file_name). Can be used instead of specifying file_location and file_name, by default None
     env_name : Optional[str], optional
-        Override the name of the environment variable used to lookup this field. Per default the upper case field name is used as environment variable.
-    only_env : bool, optional
-        Only check environment variables for this field.
-    only_file : bool, optional
-        Only check files for this field.
+        Override the name of the environment variable used to lookup this field. Per default the upper case field name is used as environment variable, by default None
+    dotenv_name : Optional[str], optional
+        Override the name of the dotenv variable used to lookup this field. Per default the upper case field name is used as environment variable, by default None
+    use_env : bool, optional
+        Use os.environ to look for variables, by default True
+    use_file : bool, optional
+        Use files to look for variables, by default True
     conversion_func : Optional[Callable[[str], Any]], optional
-        Optional conversion function to convert complex types.
+        Optional conversion function to convert complex types., by default None
 
     Returns
     -------
@@ -71,13 +104,14 @@ def metadata(
     """
     if metadata is None:
         metadata = {}
-    metadata[READENV_METADATA_KEY] = FieldMetadata(
+    metadata[READENV_METADATA_KEY] = _FieldMetadata(
         file_location=file_location,
         file_name=file_name,
         file_path=file_path,
         env_name=env_name,
-        only_env=only_env,
-        only_file=only_file,
+        dotenv_name=dotenv_name,
+        use_env=use_env,
+        use_file=use_file,
         conversion_func=conversion_func,
     )
     return metadata
@@ -115,7 +149,7 @@ def get_type_of_optional(field) -> Any:
 
 class EnvironmentReaderMixin(abc.ABC):
     @classmethod
-    def read(cls: Type[T], default_location="/run/secrets") -> T:
+    def read(cls: Type[T], *, default_location: str = "/run/secrets", dotenv_path: Optional[str] = None) -> T:
         """Load environment variables from os.environ and files
 
         Parameters
@@ -124,12 +158,20 @@ class EnvironmentReaderMixin(abc.ABC):
             The location where files are searched, by default "/run/secrets"
         """
 
+        # Parse dotenv file
+        dotenv = None
+        if dotenv_path is not None and os.path.exists(dotenv_path):
+            dotenv = _parse_dotenv(dotenv_path)
+
         init_kwargs = {}
         types = get_type_hints(cls)
 
         for field in fields(cls):
             field_name = field.name
             field_type = types[field.name]
+
+            if field_type == Ellipsis:
+                field_type = str
 
             # Handle Optional[X] case
             if is_optional_type(field_type):
@@ -139,18 +181,13 @@ class EnvironmentReaderMixin(abc.ABC):
 
             # Field Metadata
             if READENV_METADATA_KEY in field.metadata:
-                field_metadata: FieldMetadata = field.metadata[READENV_METADATA_KEY]
+                field_metadata: _FieldMetadata = field.metadata[READENV_METADATA_KEY]
             else:
-                field_metadata = FieldMetadata()
+                field_metadata = _FieldMetadata()
 
-            read_file = True
-            read_env = True
-            if field_metadata.only_env:
-                read_file = False
-                read_env = True
-            if field_metadata.only_file:
-                read_file = True
-                read_env = False
+            # Determine if files or environment should be used
+            read_file = True and field_metadata.use_file
+            read_env = True and field_metadata.use_env
 
             raw_value = None
             value = None
@@ -175,6 +212,17 @@ class EnvironmentReaderMixin(abc.ABC):
                     with open(file_path) as f:
                         raw_value = f.read().strip()
 
+            # Read from dotenv
+            print(dotenv)
+            if dotenv is not None and raw_value is None:
+                if field_metadata.dotenv_name:
+                    dotenv_key = field_metadata.dotenv_name
+                else:
+                    dotenv_key = field_name.upper()
+                print(dotenv_key)
+                if dotenv_key in dotenv:
+                    raw_value = dotenv[dotenv_key]
+
             # Read from environment
             if read_env:
                 if raw_value is None:
@@ -196,12 +244,12 @@ class EnvironmentReaderMixin(abc.ABC):
                         value = str(raw_value)
                     else:
                         raise RuntimeError(
-                            f"Not possible to convert type. Please specify an appropriate a conversion_func for field '{field.name}'."
+                            f"Not possible to convert type. Please specify conversion_func for field '{field.name}'."
                         )
                 except Exception as e:
                     raise RuntimeError(f"Failed to convert value for field {field.name}: {e}")
 
-            # Use default value if None has previously found
+            # Use default value if None was previously found
             if value is None and not field.default == MISSING:
                 value = field.default
             elif value is None and not field.default_factory == MISSING:

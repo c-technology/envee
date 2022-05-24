@@ -1,6 +1,7 @@
 import datetime
 import os
 from dataclasses import dataclass, field
+import pathlib
 from typing import List, Optional
 
 import pytest
@@ -135,7 +136,6 @@ def test_read_default_location(tmpdir):
     assert env.debug == "true"
 
 
-
 def test_read_file_location_and_file_name(tmpdir):
     p_dir = tmpdir.mkdir("secrets")
     p = p_dir.join("debug2")
@@ -161,7 +161,7 @@ def test_read_only_env(monkeypatch, tmpdir):
     @environment
     @dataclass
     class Environment:
-        debug: str = field(metadata=metadata(file_location=p_dir.realpath(), only_env=True))
+        debug: str = field(metadata=metadata(file_location=p_dir.realpath(), use_env=True, use_file=False))
 
     monkeypatch.setenv("DEBUG", "true")
     env = Environment.read()
@@ -178,7 +178,7 @@ def test_read_only_file(monkeypatch, tmpdir):
     @environment
     @dataclass
     class Environment:
-        debug: str = field(metadata=metadata(file_location=p_dir.realpath(), only_file=True))
+        debug: str = field(metadata=metadata(file_location=p_dir.realpath(), use_env=False, use_file=True))
 
     monkeypatch.setenv("DEBUG", "true")
     env = Environment.read()
@@ -187,7 +187,6 @@ def test_read_only_file(monkeypatch, tmpdir):
 
 
 def test_read_default_type(monkeypatch):
-
     @environment
     @dataclass
     class Environment:
@@ -199,9 +198,7 @@ def test_read_default_type(monkeypatch):
     assert type(env.debug) == str and env.debug == "true"
 
 
-
 def test_read_int_and_float(monkeypatch):
-
     @environment
     @dataclass
     class Environment:
@@ -214,3 +211,23 @@ def test_read_int_and_float(monkeypatch):
 
     assert env.an_int == 42
     assert env.a_float == 100.0
+
+
+def test_read_dotenv(tmp_path: pathlib.Path):
+
+    dotenv_file = tmp_path / ".env"
+    dotenv_file.write_text('DEBUG="True" #a comment\nWORKERS=5\nmultiline="first\nsecond\n3"')
+    print(dotenv_file.absolute())
+
+    @environment
+    @dataclass
+    class Environment:
+        debug: str
+        workers: int
+        multiline: str = field(metadata=metadata(dotenv_name="multiline"))
+
+    env = Environment.read(dotenv_path=dotenv_file.absolute())
+
+    assert env.debug == "True"
+    assert env.workers == 5
+    assert env.multiline == "first\nsecond\n3"
