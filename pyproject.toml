@@ -6,12 +6,24 @@ build-backend = "setuptools.build_meta"
 name = "readenv"
 dynamic = ["version"]
 description = "Read variables from environment or files into dataclasses"
+authors = ["René Buffat <rene@ctechnology.io>"]
 readme = "README.md"
-keywords = ["env", "environment variables", "docker secrets", "settings"]
+homepage = "https://github.com/c-technology/readenv"
+repository = "https://github.com/c-technology/readenv"
+documentation = "https://github.com/c-technology/readenv"
+keywords = [
+    "env",
+    "environment variables",
+    "docker secrets",
+    "settings",
+    ".env",
+    "dotenv"
+]
 license = { text = "BSD 3-Clause License" }
 requires-python = ">=3.8"
 classifiers = [
     "Development Status :: 4 - Beta",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -19,14 +31,18 @@ classifiers = [
 ]
 
 [tool.setuptools]
-packages = ["readenv"]
+license-files = ["LICENSE"]
+py-modules = ["readenv"]
 
 [tool.setuptools.dynamic]
 version = { attr = "readenv.__version__" }
 
+[tool.setuptools.packages.find]
+exclude = [".github*", ".gitignore", "tests*"]
+
 [tool.black]
 target-version = ["py38", "py39", "py310"]
-line-length = 120
+line-length = 88
 
 [tool.isort]
 profile = "black"
