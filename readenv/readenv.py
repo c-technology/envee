@@ -149,7 +149,12 @@ def get_type_of_optional(field) -> Any:
 
 class EnvironmentReaderMixin(abc.ABC):
     @classmethod
-    def read(cls: Type[T], *, default_location: str = "/run/secrets", dotenv_path: Optional[str] = None) -> T:
+    def read(
+        cls: Type[T],
+        *,
+        default_location: str = "/run/secrets",
+        dotenv_path: Optional[str] = None,
+    ) -> T:
         """Load environment variables from os.environ and files
 
         Parameters
@@ -247,7 +252,9 @@ class EnvironmentReaderMixin(abc.ABC):
                             f"Not possible to convert type. Please specify conversion_func for field '{field.name}'."
                         )
                 except Exception as e:
-                    raise RuntimeError(f"Failed to convert value for field {field.name}: {e}")
+                    raise RuntimeError(
+                        f"Failed to convert value for field {field.name}: {e}"
+                    )
 
             # Use default value if None was previously found
             if value is None and not field.default == MISSING:
@@ -257,7 +264,9 @@ class EnvironmentReaderMixin(abc.ABC):
 
             # Check if value is required and is not defined as Optional
             if value is None and not is_optional_type(field_type):
-                raise RuntimeError(f"Field '{field_name}' is required but no value was found.")
+                raise RuntimeError(
+                    f"Field '{field_name}' is required but no value was found."
+                )
 
             init_kwargs[field_name] = value
 
