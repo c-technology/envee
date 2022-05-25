@@ -6,11 +6,8 @@ build-backend = "setuptools.build_meta"
 name = "readenv"
 dynamic = ["version"]
 description = "Read variables from environment or files into dataclasses"
-authors = ["René Buffat <rene@ctechnology.io>"]
 readme = "README.md"
-homepage = "https://github.com/c-technology/readenv"
-repository = "https://github.com/c-technology/readenv"
-documentation = "https://github.com/c-technology/readenv"
+authors = [{ name = "René Buffat", email = "rene@ctechnology.io" }]
 keywords = [
     "env",
     "environment variables",
