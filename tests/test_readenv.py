@@ -38,7 +38,9 @@ def test_read_env_complex(monkeypatch):
     @dataclass
     class Environment:
         timestamp: datetime.datetime = field(
-            metadata=metadata(conversion_func=lambda x: datetime.datetime.fromisoformat(x))
+            metadata=metadata(
+                conversion_func=lambda x: datetime.datetime.fromisoformat(x)
+            )
         )
 
     monkeypatch.setenv("TIMESTAMP", "2022-05-18T16:10:41.156832")
@@ -146,7 +148,9 @@ def test_read_file_location_and_file_name(tmpdir):
     @environment
     @dataclass
     class Environment:
-        debug: str = field(metadata=metadata(file_location=p_dir.realpath(), file_name="debug2"))
+        debug: str = field(
+            metadata=metadata(file_location=p_dir.realpath(), file_name="debug2")
+        )
 
     env = Environment.read()
     assert env.debug == "true"
@@ -161,7 +165,11 @@ def test_read_only_env(monkeypatch, tmpdir):
     @environment
     @dataclass
     class Environment:
-        debug: str = field(metadata=metadata(file_location=p_dir.realpath(), use_env=True, use_file=False))
+        debug: str = field(
+            metadata=metadata(
+                file_location=p_dir.realpath(), use_env=True, use_file=False
+            )
+        )
 
     monkeypatch.setenv("DEBUG", "true")
     env = Environment.read()
@@ -178,7 +186,11 @@ def test_read_only_file(monkeypatch, tmpdir):
     @environment
     @dataclass
     class Environment:
-        debug: str = field(metadata=metadata(file_location=p_dir.realpath(), use_env=False, use_file=True))
+        debug: str = field(
+            metadata=metadata(
+                file_location=p_dir.realpath(), use_env=False, use_file=True
+            )
+        )
 
     monkeypatch.setenv("DEBUG", "true")
     env = Environment.read()
@@ -216,7 +228,9 @@ def test_read_int_and_float(monkeypatch):
 def test_read_dotenv(tmp_path: pathlib.Path):
 
     dotenv_file = tmp_path / ".env"
-    dotenv_file.write_text('DEBUG="True" #a comment\nWORKERS=5\nmultiline="first\nsecond\n3"')
+    dotenv_file.write_text(
+        'DEBUG="True" #a comment\nWORKERS=5\nmultiline="first\nsecond\n3"'
+    )
     print(dotenv_file.absolute())
 
     @environment
