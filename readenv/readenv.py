@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import os
 import shlex
@@ -18,9 +20,6 @@ if sys.version_info < (3, 11):
     from typing_extensions import dataclass_transform
 else:
     from typing import dataclass_transform
-
-if sys.version_info < (3, 9):
-    from __future__ import annotations
 
 PRIMITIVE_TYPES = {int, float, str}
 
