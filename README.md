@@ -2,27 +2,27 @@
 
 ![Build status](https://github.com/c-technology/readenv/actions/workflows/check.yml/badge.svg?branch=main)
 
-Read variables from environment or files into dataclasses.
+Read variables from the environment or files into dataclasses.
 
-While it is convenient to configure applications using environment variables during development, it is advised not to store sensitive information such as passwords in environment variables in production environments. The `readenv` library allows reading variables either from the environment variables or files (which are typically used by e.g. [docker secrets](https://docs.docker.com/engine/swarm/secrets/)), thus keeping code used for development and production environments as close as possible.
+While it is convenient to configure applications using environment variables during development, it is advised not to store sensitive information such as passwords in environment variables in production environments. The `readenv` library allows reading variables either from the environment variables or files (which are typically used by e.g. [docker secrets](https://docs.docker.com/engine/swarm/secrets/)), thus keeping code used for development and production environments as close to each other as possible.
 
 ## Usage
 
-To specify variables a with the `@environment` decorator annotated `dataclass` is used. The `@environment` decorator adds a `read()` method, which is used to read the variables from the environment.
+Variables to read from the environment are declared using classes annotated with the `@readenv.environment` decorator. Using `readenv.read()` the fields of the classes are filled using the environment.
+
+Example:
 
 ```python
-from dataclasses import dataclass
 from typing import Optional
-from readenv import environment
+import readenv
 
-@environment
-@dataclass
+@readenv.environment
 class Environment:
     username: str
     debug: Optional[str]
-    wokers: int = 5
+    workers: int = 5
 
-env = Environment.read()
+env = readenv.read(Environment)
 
 ```
 
@@ -49,14 +49,13 @@ second
 ```
 
 ```python
-@environment
-@dataclass
+@readenv.environment
 class Environment:
     debug: str
     workers: int
     multiline: str
 
-env = Environment.read(dotenv_path=/path/to/.env/file)
+env = readenv.read(Environment, dotenv_path="/path/to/.env/file")
 ```
 
 ## Advanced usage
@@ -66,15 +65,13 @@ env = Environment.read(dotenv_path=/path/to/.env/file)
 In the following example the field debug is filled using the environment variable `PROJECT_DEBUG`.
 
 ```python
-from dataclasses import dataclass, field
-from readenv import environment, metadata
+import readenv
 
-@environment
-@dataclass
+@readenv.environment
 class Environment:
-    debug: str = field(metadata=metadata(env_name="PROJECT_DEBUG"))
+    debug: str = readenv.field(env_name="PROJECT_DEBUG")
 
-env = Environment.read()
+env = readenv.read(Environment)
 ```
 
 ### Override file locations
@@ -82,29 +79,25 @@ env = Environment.read()
 The default location can be changed by passing a different location to the `read()` method.
 
 ```python
-from dataclasses import dataclass, field
-from readenv import environment, metadata
+import readenv
 
-@environment
-@dataclass
+@readenv.environment
 class Environment:
     debug: str
 
-env = Environment.read(default_location="/other/dir")
+env = readenv.read(Environment, default_files_location="/path/to/a/directory")
 ```
 
-Alternatively, the fields metadata can specify the `file_location` or `file_name`. The parameter `file_location` overrides the default location and `file_name` overrides the file name. The direct path to a file can be specified using `file_path`. `file_path` will take precedence over `file_location` or `file_name`.
+Alternatively, the fields metadata can specify the `file_location` or `file_name`. The parameter `file_location` overrides `default_files_location`. `file_name` overrides the default file name. The direct path to a file can be specified using `file_path`. `file_path` will take precedence over `file_location` or `file_name`.
 
 ```python
-from dataclasses import dataclass, field
-from readenv import environment, metadata
+import readenv
 
-@environment
-@dataclass
+@readenv.environment
 class Environment:
-    debug: str = field(metadata=metadata(file_location="/other/dir", file_name="DEBUG.txt"))
+    debug: str = readenv.field(file_location="/other/dir", file_name="DEBUG.txt")
 
-env = Environment.read()
+env = readenv.read(Environment)
 ```
 
 ### Complex datatypes
@@ -112,15 +105,14 @@ env = Environment.read()
 For complex datatypes, a conversion function needs to be passed to the field.
 
 ```python
-from dataclasses import dataclass, field
-from readenv import environment, metadata
+import readenv
 
-@environment
-@dataclass
+@readenv.environment
 class Environment:
-    timestamp: datetime.datetime = field(
-            metadata=metadata(conversion_func=lambda x: datetime.datetime.fromisoformat(x))
-        )
+    timestamp: datetime.datetime = readenv.field(
+        conversion_func=lambda x: datetime.datetime.fromisoformat(x)
+    )
 
-env = Environment.read()
+
+env = readenv.read(Environment)
 ```

@@ -19,13 +19,14 @@ keywords = [
 license = { text = "BSD 3-Clause License" }
 requires-python = ">=3.8"
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 3 - Alpha",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
+dependencies = ['typing_extensions>=4.1.1; python_version < "3.11"']
 
 [tool.setuptools]
 license-files = ["LICENSE"]
@@ -36,6 +37,7 @@ version = { attr = "readenv.__version__" }
 
 [tool.setuptools.packages.find]
 exclude = [".github*", ".gitignore", "tests*"]
+include = ["readenv*"]
 
 [tool.black]
 target-version = ["py38", "py39", "py310"]
