@@ -1,9 +1,7 @@
-from __future__ import annotations
-
 import datetime
 import os
 import pathlib
-from typing import Optional
+from typing import List, Optional
 
 import pytest
 
@@ -68,7 +66,7 @@ def test_read_env_default():
 def test_read_env_default_factory():
     @readenv.environment
     class Environment:
-        debug: list[str] = readenv.field(default_factory=list)
+        debug: List[str] = readenv.field(default_factory=list)
 
     env = readenv.read(Environment)
     assert env.debug == []
