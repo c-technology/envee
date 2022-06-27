@@ -19,6 +19,9 @@ if sys.version_info < (3, 11):
 else:
     from typing import dataclass_transform
 
+if sys.version_info < (3, 9):
+    from __future__ import annotations
+
 PRIMITIVE_TYPES = {int, float, str}
 
 _T = TypeVar("_T")
