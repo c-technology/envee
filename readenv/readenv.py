@@ -17,7 +17,9 @@ from typing import (
 )
 
 if sys.version_info < (3, 11):
-    from typing_extensions import dataclass_transform
+    from typing_extensions import (
+        dataclass_transform,
+    )  # pytype: disable=not-supported-yet
 else:
     from typing import dataclass_transform
 
@@ -78,8 +80,8 @@ def field(
     use_env=True,
     use_file=True,
     conversion_func: Optional[Callable[[str], Any]] = None,
-    **kwargs,
-):
+    **kwargs: Any,
+) -> Any:
     """Configure field metadata
 
     Parameters
@@ -126,8 +128,8 @@ def field(
 
 
 @dataclass_transform(field_descriptors=(field,))
-def environment(cls: _T) -> _T:
-    return dataclasses.dataclass()(cls)
+def environment(cls: _T, **kwargs: Any) -> _T:
+    return dataclasses.dataclass(**kwargs)(cls)
 
 
 def is_optional_type(field) -> bool:

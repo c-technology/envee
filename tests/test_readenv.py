@@ -214,7 +214,7 @@ def test_read_dotenv(tmp_path: pathlib.Path):
         workers: int
         multiline: str = readenv.field(dotenv_name="multiline")
 
-    env = readenv.read(Environment, dotenv_path=dotenv_file.absolute())
+    env = readenv.read(Environment, dotenv_path=str(dotenv_file.absolute()))
 
     assert env.debug == "True"
     assert env.workers == 5
