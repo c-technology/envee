@@ -115,14 +115,20 @@ def test_read_default_location(tmpdir):
     p = p_dir.join("debug")
     p.write("true")
 
+    p2 = p_dir.join("debug2")
+    p2.write("false")
+
     assert "DEBUG" not in os.environ
+    assert "DEBUG2" not in os.environ
 
     @readenv.environment
     class Environment:
         debug: str
+        DEBUG2: str
 
     env = readenv.read(Environment, default_files_location=p_dir.realpath())
     assert env.debug == "true"
+    assert env.DEBUG2 == "false"
 
 
 def test_read_file_location_and_file_name(tmpdir):

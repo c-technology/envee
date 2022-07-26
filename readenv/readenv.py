@@ -221,7 +221,7 @@ def read(
                 if field_metadata.file_name:
                     file_name = field_metadata.file_name
                 else:
-                    file_name = field_name
+                    file_name = field_name.lower()
 
                 file_path = os.path.join(location, file_name)
 
