@@ -41,7 +41,10 @@ version = { attr = "readenv.__version__" }
 
 [tool.setuptools.packages.find]
 exclude = [".github*", ".gitignore", "tests*"]
-include = ["readenv*"]
+include = ["readenv"]
+
+[tool.setuptools.package-data]
+readenv = ["*.typed"]
 
 [tool.black]
 target-version = ["py38", "py39", "py310"]
