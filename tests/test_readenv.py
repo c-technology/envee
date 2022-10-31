@@ -1,6 +1,7 @@
 import datetime
 import os
 import pathlib
+import sys
 from typing import List, Optional
 
 import pytest
@@ -248,3 +249,27 @@ def test_parse_bool(monkeypatch, env_value: str, expected: bool):
     env = readenv.read(Environment)
 
     assert env.debug == expected
+
+
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="requires python3.10 or higher")
+def test_default_fields_ordering(monkeypatch):
+    @readenv.environment
+    class Environment:
+        USER: str
+        PASSWORD: str
+        HOST: str
+        PORT: int = 5432
+        DB: str
+
+    monkeypatch.setenv("USER", "user")
+    monkeypatch.setenv("PASSWORD", "password")
+    monkeypatch.setenv("HOST", "host")
+    monkeypatch.setenv("DB", "db")
+
+    env = readenv.read(Environment)
+
+    assert env.USER == "user"
+    assert env.PASSWORD == "password"
+    assert env.HOST == "host"
+    assert env.PORT == 5432
+    assert env.DB == "db"
