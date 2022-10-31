@@ -44,8 +44,8 @@ jobs:
 
       - name: flake8 check
         run: |
-          flake8 readenv
+          flake8 easyenv
 
       - name: Pytype check
         run: |
-          pytype readenv
+          pytype easyenv
