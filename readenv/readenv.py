@@ -127,8 +127,13 @@ def field(
     )
 
 
-@dataclass_transform(field_descriptors=(field,))
+@dataclass_transform(kw_only_default=True, field_descriptors=(field,))
 def environment(cls: _T, **kwargs: Any) -> _T:
+    if sys.version_info >= (3, 10):
+        if kwargs is None:
+            kwargs = {"kw_only": True}
+        else:
+            kwargs["kw_only"] = True
     return dataclasses.dataclass(**kwargs)(cls)
 
 
