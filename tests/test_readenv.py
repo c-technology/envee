@@ -225,3 +225,26 @@ def test_read_dotenv(tmp_path: pathlib.Path):
     assert env.debug == "True"
     assert env.workers == 5
     assert env.multiline == "first\nsecond\n3"
+
+
+@pytest.mark.parametrize(
+    "env_value,expected",
+    [
+        ("1", True),
+        ("True", True),
+        ("true", True),
+        ("0", False),
+        ("False", False),
+        ("false", False),
+    ],
+)
+def test_parse_bool(monkeypatch, env_value: str, expected: bool):
+    @readenv.environment
+    class Environment:
+        debug: bool
+
+    monkeypatch.setenv("DEBUG", env_value)
+
+    env = readenv.read(Environment)
+
+    assert env.debug == expected

@@ -147,6 +147,15 @@ def get_type_of_optional(field) -> Any:
     return next(iter(optional_types))
 
 
+def default_parse_bool_func(value: str) -> bool:
+    """Default function to parse bool values"""
+    if value.lower() in ("true", "1"):
+        return True
+    if value.lower() in ("false", "0"):
+        return False
+    raise RuntimeError(f"Can't parse {value} as bool.")
+
+
 def read(
     cls: Type[_T],
     *,
@@ -255,6 +264,8 @@ def read(
                     value = field_metadata.conversion_func(raw_value)
                 elif type_ in PRIMITIVE_TYPES:
                     value = type_(raw_value)
+                elif type_ == bool:
+                    value = default_parse_bool_func(raw_value)
                 elif type_ == Ellipsis:
                     value = str(raw_value)
                 else:
