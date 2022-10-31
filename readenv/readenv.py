@@ -17,9 +17,9 @@ from typing import (
 )
 
 if sys.version_info < (3, 11):
-    from typing_extensions import (
+    from typing_extensions import (  # pytype: disable=not-supported-yet
         dataclass_transform,
-    )  # pytype: disable=not-supported-yet
+    )
 else:
     from typing import dataclass_transform
 
@@ -87,17 +87,25 @@ def field(
     Parameters
     ----------
     metadata : Optional[Dict[str, Any]], optional
-        dataclass metadata dict if already one exists. Can be omitted if dataclass is not annotated with another library modifying the dataclass metadata, by default None
+        dataclass metadata dict if already one exists. Can be omitted if dataclass is
+        not annotated with another library modifying the dataclass metadata,
+        by default None
     file_location : Optional[str], optional
         Override the default file location for this field, by default None
     file_name : Optional[str], optional
-        Override the file name for this field. Per default the lower case field name is used as file name, by default None
+        Override the file name for this field. Per default the lower case field name is
+        used as file name, by default None
     file_path : Optional[str], optional
-        Override the file path (constructed from file_location and file_name). Can be used instead of specifying file_location and file_name, by default None
+        Override the file path (constructed from file_location and file_name). Can be
+        used instead of specifying file_location and file_name, by default None
     env_name : Optional[str], optional
-        Override the name of the environment variable used to lookup this field. Per default the upper case field name is used as environment variable, by default None
+        Override the name of the environment variable used to lookup this field. Per
+        default the upper case field name is used as environment variable,
+        by default None
     dotenv_name : Optional[str], optional
-        Override the name of the dotenv variable used to lookup this field. Per default the upper case field name is used as environment variable, by default None
+        Override the name of the dotenv variable used to lookup this field.
+        Per default the upper case field name is used as environment variable,
+        by default None
     use_env : bool, optional
         Use os.environ to look for variables, by default True
     use_file : bool, optional
@@ -275,7 +283,8 @@ def read(
                     value = str(raw_value)
                 else:
                     raise RuntimeError(
-                        f"Not possible to convert type. Please specify conversion_func for field '{field.name}'."
+                        "Not possible to convert type. "
+                        f"Please specify conversion_func for field '{field.name}'."
                     )
             except Exception as e:
                 raise RuntimeError(
