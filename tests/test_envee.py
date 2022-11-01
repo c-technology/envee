@@ -299,5 +299,22 @@ def test_naming_strategy(monkeypatch, tmpdir):
     env = envee.read(
         Environment,
         default_files_location=p_dir.realpath(),
-        naming_strategy=CustomNamingStrategy
+        naming_strategy=CustomNamingStrategy,
     )
+
+
+def test_file_suffix(monkeypatch, tmpdir):
+
+    p_dir = tmpdir.mkdir("secrets")
+    p = p_dir.join("one")
+    p.write("1")
+
+    monkeypatch.setenv("ONE_FILE", str(p.realpath()))
+
+    @envee.environment
+    class Environment:
+        ONE: str
+
+    env = envee.read(Environment)
+
+    assert env.ONE == "1"

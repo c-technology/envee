@@ -35,12 +35,38 @@ class NamingStrategy(ABC):
     @staticmethod
     @abstractmethod
     def get_env_variable_name(field_name: str) -> str:
+        """Derive environment variable name from field name
+        Parameters
+        ----------
+        field_name : str
+            The name of the field
+
+        Returns
+        -------
+        str
+            The name of the corresponding environment variable
+        """
         ...  # pytype: disable=bad-return-type
 
     @staticmethod
     @abstractmethod
     def get_file_name(field_name: str) -> str:
+        """Derive file name from field name
+        Parameters
+        ----------
+        field_name : str
+            The name of the field
+
+        Returns
+        -------
+        str
+            The name of the corresponding file
+        """
         ...  # pytype: disable=bad-return-type
+
+    @staticmethod
+    def get_file_suffix() -> str:
+        return "_FILE"
 
 
 class DefaultNamingStrategy(NamingStrategy):
@@ -258,8 +284,15 @@ def read(
         value = None
         # Read from file
         if read_file:
+
+            env_variable_with_file_suffix = (
+                naming_strategy.get_env_variable_name(field_name)
+                + naming_strategy.get_file_suffix()
+            )
             if field_metadata.file_path:
                 file_path = field_metadata.file_path
+            elif env_variable_with_file_suffix in os.environ:
+                file_path = os.environ[env_variable_with_file_suffix]
             else:
                 if field_metadata.file_location:
                     location = field_metadata.file_location
