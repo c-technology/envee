@@ -4,6 +4,7 @@ import dataclasses
 import os
 import shlex
 import sys
+from abc import ABC, abstractmethod
 from collections.abc import Callable
 from typing import (
     Any,
@@ -27,7 +28,29 @@ PRIMITIVE_TYPES = {int, float, str}
 
 _T = TypeVar("_T")
 
-READENV_METADATA_KEY = "readenv"
+ENVEE_METADATA_KEY = "envee"
+
+
+class NamingStrategy(ABC):
+    @staticmethod
+    @abstractmethod
+    def get_env_variable_name(field_name: str) -> str:
+        ...  # pytype: disable=bad-return-type
+
+    @staticmethod
+    @abstractmethod
+    def get_file_name(field_name: str) -> str:
+        ...  # pytype: disable=bad-return-type
+
+
+class DefaultNamingStrategy(NamingStrategy):
+    @staticmethod
+    def get_env_variable_name(field_name: str) -> str:
+        return field_name.upper()
+
+    @staticmethod
+    def get_file_name(field_name: str) -> str:
+        return field_name.lower()
 
 
 def _parse_dotenv(dotenv_file_path: str) -> dict[str, str]:
@@ -120,7 +143,7 @@ def field(
     """
     return dataclasses.field(
         metadata={
-            READENV_METADATA_KEY: _FieldMetadata(
+            ENVEE_METADATA_KEY: _FieldMetadata(
                 file_location=file_location,
                 file_name=file_name,
                 file_path=file_path,
@@ -174,6 +197,7 @@ def read(
     *,
     default_files_location: str = "/run/secrets",
     dotenv_path: Optional[str] = None,
+    naming_strategy: Type[NamingStrategy] = DefaultNamingStrategy,
 ) -> _T:
     """Read configurations from environment variables or files
 
@@ -185,6 +209,8 @@ def read(
         The location where files are searched, by default "/run/secrets"
     dotenv_path : Optional[str], optional
         The path to a .env file, by default None
+    naming_strategy: Type[NamingStrategy]
+        The naming strategy to be used for environment variables and files
 
     Returns
     -------
@@ -219,8 +245,8 @@ def read(
             type_ = field_type
 
         # Field Metadata
-        if READENV_METADATA_KEY in field.metadata:
-            field_metadata: _FieldMetadata = field.metadata[READENV_METADATA_KEY]
+        if ENVEE_METADATA_KEY in field.metadata:
+            field_metadata: _FieldMetadata = field.metadata[ENVEE_METADATA_KEY]
         else:
             field_metadata = _FieldMetadata()
 
@@ -243,7 +269,7 @@ def read(
                 if field_metadata.file_name:
                     file_name = field_metadata.file_name
                 else:
-                    file_name = field_name.lower()
+                    file_name = naming_strategy.get_file_name(field_name)
 
                 file_path = os.path.join(location, file_name)
 
@@ -256,7 +282,7 @@ def read(
             if field_metadata.dotenv_name:
                 dotenv_key = field_metadata.dotenv_name
             else:
-                dotenv_key = field_name.upper()
+                dotenv_key = naming_strategy.get_env_variable_name(field_name)
             if dotenv_key in dotenv:
                 raw_value = dotenv[dotenv_key]
 
@@ -266,7 +292,7 @@ def read(
                 if field_metadata.env_name:
                     environ_key = field_metadata.env_name
                 else:
-                    environ_key = field_name.upper()
+                    environ_key = naming_strategy.get_env_variable_name(field_name)
                 if environ_key in os.environ:
                     raw_value = os.environ[environ_key]
 

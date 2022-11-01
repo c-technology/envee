@@ -273,3 +273,31 @@ def test_default_fields_ordering(monkeypatch):
     assert env.HOST == "host"
     assert env.PORT == 5432
     assert env.DB == "db"
+
+
+def test_naming_strategy(monkeypatch, tmpdir):
+    class CustomNamingStrategy(envee.NamingStrategy):
+        @staticmethod
+        def get_env_variable_name(field_name: str) -> str:
+            return field_name.lower()
+
+        @staticmethod
+        def get_file_name(field_name: str) -> str:
+            return field_name.upper()
+
+    @envee.environment
+    class Environment:
+        ONE: str
+        TWO: str
+
+    monkeypatch.setenv("one", "1")
+
+    p_dir = tmpdir.mkdir("secrets")
+    p = p_dir.join("TWO")
+    p.write("2")
+
+    env = envee.read(
+        Environment,
+        default_files_location=p_dir.realpath(),
+        naming_strategy=CustomNamingStrategy
+    )
