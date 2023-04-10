@@ -4,8 +4,6 @@
 #
 #    pip-compile requirements-dev.in
 #
-attrs==21.4.0
-    # via pytest
 iniconfig==1.1.1
     # via pytest
 packaging==21.3
@@ -14,5 +12,5 @@ pluggy==1.0.0
     # via pytest
 pyparsing==3.0.9
     # via packaging
-pytest==7.2.2
+pytest==7.3.0
     # via -r requirements-dev.in
