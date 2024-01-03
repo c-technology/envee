@@ -6,7 +6,7 @@
 #
 attrs==22.1.0
     # via pytype
-flake8==5.0.4
+flake8==6.1.0
     # via -r requirements-ci.in
 importlab==0.8
     # via pytype
@@ -22,11 +22,11 @@ networkx==2.8.3
     #   pytype
 ninja==1.10.2.4
     # via pytype
-pycodestyle==2.9.1
+pycodestyle==2.11.1
     # via flake8
 pydot==1.4.2
     # via pytype
-pyflakes==2.5.0
+pyflakes==3.1.0
     # via flake8
 pyparsing==3.0.9
     # via pydot
