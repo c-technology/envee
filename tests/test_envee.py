@@ -9,7 +9,7 @@ import pytest
 import envee
 
 
-def test_read_env(monkeypatch):
+def test_read_env(monkeypatch) -> None:
     @envee.environment
     class Environment:
         debug: str
@@ -20,7 +20,7 @@ def test_read_env(monkeypatch):
     assert env.debug == "true"
 
 
-def test_read_env_rename(monkeypatch):
+def test_read_env_rename(monkeypatch) -> None:
     @envee.environment
     class Environment:
         debug: str = envee.field(env_name="DEBUG2")
@@ -31,7 +31,7 @@ def test_read_env_rename(monkeypatch):
     assert env.debug == "true"
 
 
-def test_read_env_complex(monkeypatch):
+def test_read_env_complex(monkeypatch) -> None:
     @envee.environment
     class Environment:
         timestamp: datetime.datetime = envee.field(
@@ -44,7 +44,7 @@ def test_read_env_complex(monkeypatch):
     assert env.timestamp == datetime.datetime(2022, 5, 18, 16, 10, 41, 156832)
 
 
-def test_read_env_wrong_type(monkeypatch):
+def test_read_env_wrong_type(monkeypatch) -> None:
     @envee.environment
     class Environment:
         debug: int
@@ -55,7 +55,7 @@ def test_read_env_wrong_type(monkeypatch):
         envee.read(Environment)
 
 
-def test_read_env_default():
+def test_read_env_default() -> None:
     @envee.environment
     class Environment:
         debug: str = "false"
@@ -64,7 +64,7 @@ def test_read_env_default():
     assert env.debug == "false"
 
 
-def test_read_env_default_factory():
+def test_read_env_default_factory() -> None:
     @envee.environment
     class Environment:
         debug: List[str] = envee.field(default_factory=list)
@@ -73,16 +73,16 @@ def test_read_env_default_factory():
     assert env.debug == []
 
 
-def test_read_env_optional():
+def test_read_env_optional() -> None:
     @envee.environment
     class Environment:
         debug: Optional[str]
 
     env = envee.read(Environment)
-    assert env.debug == None
+    assert env.debug is None
 
 
-def test_read_file_path(tmpdir):
+def test_read_file_path(tmpdir) -> None:
     p = tmpdir.mkdir("secrets").join("debug")
     p.write("true")
 
@@ -96,7 +96,7 @@ def test_read_file_path(tmpdir):
     assert env.debug == "true"
 
 
-def test_read_file_location(tmpdir):
+def test_read_file_location(tmpdir) -> None:
     p_dir = tmpdir.mkdir("secrets")
     p = p_dir.join("debug")
     p.write("true")
@@ -111,7 +111,7 @@ def test_read_file_location(tmpdir):
     assert env.debug == "true"
 
 
-def test_read_default_location(tmpdir):
+def test_read_default_location(tmpdir) -> None:
     p_dir = tmpdir.mkdir("secrets")
     p = p_dir.join("debug")
     p.write("true")
@@ -132,7 +132,7 @@ def test_read_default_location(tmpdir):
     assert env.DEBUG2 == "false"
 
 
-def test_read_file_location_and_file_name(tmpdir):
+def test_read_file_location_and_file_name(tmpdir) -> None:
     p_dir = tmpdir.mkdir("secrets")
     p = p_dir.join("debug2")
     p.write("true")
@@ -147,8 +147,7 @@ def test_read_file_location_and_file_name(tmpdir):
     assert env.debug == "true"
 
 
-def test_read_only_env(monkeypatch, tmpdir):
-
+def test_read_only_env(monkeypatch, tmpdir) -> None:
     p_dir = tmpdir.mkdir("secrets")
     p = p_dir.join("debug")
     p.write("false")
@@ -165,8 +164,7 @@ def test_read_only_env(monkeypatch, tmpdir):
     assert env.debug == "true"
 
 
-def test_read_only_file(monkeypatch, tmpdir):
-
+def test_read_only_file(monkeypatch, tmpdir) -> None:
     p_dir = tmpdir.mkdir("secrets")
     p = p_dir.join("debug")
     p.write("false")
@@ -183,7 +181,7 @@ def test_read_only_file(monkeypatch, tmpdir):
     assert env.debug == "false"
 
 
-def test_read_default_type(monkeypatch):
+def test_read_default_type(monkeypatch) -> None:
     @envee.environment
     class Environment:
         debug: ...
@@ -191,10 +189,10 @@ def test_read_default_type(monkeypatch):
     monkeypatch.setenv("DEBUG", "true")
     env = envee.read(Environment)
 
-    assert type(env.debug) == str and env.debug == "true"
+    assert isinstance(env.debug, str) and env.debug == "true"
 
 
-def test_read_int_and_float(monkeypatch):
+def test_read_int_and_float(monkeypatch) -> None:
     @envee.environment
     class Environment:
         an_int: int
@@ -208,8 +206,7 @@ def test_read_int_and_float(monkeypatch):
     assert env.a_float == 100.0
 
 
-def test_read_dotenv(tmp_path: pathlib.Path):
-
+def test_read_dotenv(tmp_path: pathlib.Path) -> None:
     dotenv_file = tmp_path / ".env"
     dotenv_file.write_text(
         'DEBUG="True" #a comment\nWORKERS=5\nmultiline="first\nsecond\n3"'
@@ -239,7 +236,7 @@ def test_read_dotenv(tmp_path: pathlib.Path):
         ("false", False),
     ],
 )
-def test_parse_bool(monkeypatch, env_value: str, expected: bool):
+def test_parse_bool(monkeypatch, env_value: str, expected: bool) -> None:
     @envee.environment
     class Environment:
         debug: bool
@@ -252,7 +249,7 @@ def test_parse_bool(monkeypatch, env_value: str, expected: bool):
 
 
 @pytest.mark.skipif(sys.version_info < (3, 10), reason="requires python3.10 or higher")
-def test_default_fields_ordering(monkeypatch):
+def test_default_fields_ordering(monkeypatch) -> None:
     @envee.environment
     class Environment:
         USER: str
@@ -275,7 +272,7 @@ def test_default_fields_ordering(monkeypatch):
     assert env.DB == "db"
 
 
-def test_naming_strategy(monkeypatch, tmpdir):
+def test_naming_strategy(monkeypatch, tmpdir) -> None:
     class CustomNamingStrategy(envee.NamingStrategy):
         @staticmethod
         def get_env_variable_name(field_name: str) -> str:
@@ -299,5 +296,28 @@ def test_naming_strategy(monkeypatch, tmpdir):
     env = envee.read(
         Environment,
         default_files_location=p_dir.realpath(),
-        naming_strategy=CustomNamingStrategy
+        naming_strategy=CustomNamingStrategy,
     )
+
+    assert env.ONE == "1"
+    assert env.TWO == "2"
+
+
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="requires python3.10 or higher")
+def test_read_env_optional_new_syntax() -> None:
+    @envee.environment
+    class Environment:
+        debug: str | None
+
+    env = envee.read(Environment)
+    assert env.debug is None
+
+
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="requires python3.10 or higher")
+def test_read_env_default_factory_new_syntax() -> None:
+    @envee.environment
+    class Environment:
+        debug: list[str] = envee.field(default_factory=list)
+
+    env = envee.read(Environment)
+    assert env.debug == []

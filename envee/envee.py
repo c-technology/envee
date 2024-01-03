@@ -18,11 +18,14 @@ from typing import (
 )
 
 if sys.version_info < (3, 11):
-    from typing_extensions import (  # pytype: disable=not-supported-yet
-        dataclass_transform,
-    )
+    from typing_extensions import dataclass_transform
 else:
     from typing import dataclass_transform
+if sys.version_info < (3, 10):
+    UnionType = Union
+else:
+    from types import UnionType
+
 
 PRIMITIVE_TYPES = {int, float, str}
 
@@ -171,16 +174,18 @@ def environment(cls: _T, **kwargs: Any) -> _T:
     return dataclasses.dataclass(**kwargs)(cls)  # type: ignore
 
 
-def is_optional_type(field: dataclasses.Field[Any]) -> bool:
-    """Returns True if field is Optional[X] type"""
-    return get_origin(field) is Union and type(None) in get_args(field)
+def is_optional_type(field_type: Any) -> bool:
+    """Returns True if field is Optional[X] type or X | None"""
+    return get_origin(field_type) in (UnionType, Union) and type(None) in get_args(
+        field_type
+    )
 
 
-def get_type_of_optional(field: dataclasses.Field[Any]) -> Any:
+def get_type_of_optional(field_type: Any) -> Any:
     """Get the X type of Optional[X]"""
-    if not is_optional_type(field):
+    if not is_optional_type(field_type):
         raise ValueError("Field is not of Optional[x] type.")
-    optional_types = set(get_args(field)) - {type(None)}
+    optional_types = set(get_args(field_type)) - {type(None)}
     if len(optional_types) > 1:
         raise ValueError("Optional[Union[]] types are not supported")
     return next(iter(optional_types))
