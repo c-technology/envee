@@ -26,7 +26,10 @@ else:
 
 PRIMITIVE_TYPES = {int, float, str}
 
-_T = TypeVar("_T")
+_T = TypeVar(
+    "_T",
+)
+
 
 ENVEE_METADATA_KEY = "envee"
 
@@ -100,8 +103,8 @@ def field(
     file_path: Optional[str] = None,
     env_name: Optional[str] = None,
     dotenv_name: Optional[str] = None,
-    use_env=True,
-    use_file=True,
+    use_env: bool = True,
+    use_file: bool = True,
     conversion_func: Optional[Callable[[str], Any]] = None,
     **kwargs: Any,
 ) -> Any:
@@ -158,22 +161,22 @@ def field(
     )
 
 
-@dataclass_transform(kw_only_default=True, field_descriptors=(field,))
+@dataclass_transform(kw_only_default=True, field_specifiers=(field,))
 def environment(cls: _T, **kwargs: Any) -> _T:
     if sys.version_info >= (3, 10):
         if kwargs is None:
             kwargs = {"kw_only": True}
         else:
             kwargs["kw_only"] = True
-    return dataclasses.dataclass(**kwargs)(cls)
+    return dataclasses.dataclass(**kwargs)(cls)  # type: ignore
 
 
-def is_optional_type(field) -> bool:
+def is_optional_type(field: dataclasses.Field[Any]) -> bool:
     """Returns True if field is Optional[X] type"""
     return get_origin(field) is Union and type(None) in get_args(field)
 
 
-def get_type_of_optional(field) -> Any:
+def get_type_of_optional(field: dataclasses.Field[Any]) -> Any:
     """Get the X type of Optional[X]"""
     if not is_optional_type(field):
         raise ValueError("Field is not of Optional[x] type.")
@@ -231,7 +234,7 @@ def read(
     init_kwargs = {}
     types = get_type_hints(cls)
 
-    for field in dataclasses.fields(cls):
+    for field in dataclasses.fields(cls):  # type: ignore
         field_name = field.name
         field_type = types[field.name]
 
