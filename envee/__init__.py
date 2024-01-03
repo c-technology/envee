@@ -1,4 +1,4 @@
-__version__ = "0.2.0dev"
+__version__ = "0.2.0"
 
 from envee.envee import NamingStrategy, environment, field, read
 
