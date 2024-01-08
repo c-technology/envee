@@ -2,6 +2,10 @@ name: Linux CI
 
 on: [push, pull_request]
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   pytest:
     name: Python ${{ matrix.python-version }}
@@ -46,6 +50,25 @@ jobs:
         run: |
           flake8 envee
 
-      - name: Pytype check
+      - name: Mypy check
         run: |
           mypy --strict envee
+
+  # Merge dependabot PRs if quality check succeed
+  dependabot:
+    name: "Dependabot"
+    needs: [test, checks]
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request'}}
+    steps:
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v1
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Enable auto-merge for Dependabot PRs
+        # if: steps.metadata.outputs.update-type == 'version-update:semver-patch'
+        run: gh pr merge --auto --merge "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
