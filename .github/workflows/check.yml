@@ -7,7 +7,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  pytest:
+  test:
     name: Python ${{ matrix.python-version }}
     runs-on: [ubuntu-latest]
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
@@ -31,7 +31,7 @@ jobs:
       - name: pytest
         run: python -m pytest tests
 
-  checks:
+  qa:
     name: Quality Checks
     runs-on: [ubuntu-latest]
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
@@ -57,7 +57,7 @@ jobs:
   # Merge dependabot PRs if quality check succeed
   dependabot:
     name: "Dependabot"
-    needs: [test, checks]
+    needs: [test, qa]
     runs-on: ubuntu-latest
     if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request'}}
     steps:
